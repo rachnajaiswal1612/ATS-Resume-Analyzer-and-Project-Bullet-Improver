@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ResumeMate – Smart ATS Resume Analyzer</title>
+<style>
+:root{--bg:#f4f1fc;--card:#fff;--text:#1f1b2e;--muted:#6b6785;--primary:#6d3fe0;--primary-d:#5a30c4;--soft:#ede7fb;--line:#e4def5;--ok-bg:#dcf5e5;--ok:#17703a;--bad-bg:#fde0e0;--bad:#b42323;--warn:#fff0b8;--shadow:0 4px 18px rgba(80,50,160,.09);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#16121f;--card:#221c31;--text:#efeaff;--muted:#a79fc2;--primary:#8b63f0;--primary-d:#a283f5;--soft:#2e2545;--line:#3a3055;--ok-bg:#16402a;--ok:#8be0ac;--bad-bg:#4a2020;--bad:#ff9d9d;--warn:#5a4a10;--shadow:0 4px 18px rgba(0,0,0,.4)}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#16121f;--card:#221c31;--text:#efeaff;--muted:#a79fc2;--primary:#8b63f0;--primary-d:#a283f5;--soft:#2e2545;--line:#3a3055;--ok-bg:#16402a;--ok:#8be0ac;--bad-bg:#4a2020;--bad:#ff9d9d;--warn:#5a4a10;--shadow:0 4px 18px rgba(0,0,0,.4)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,var(--bg),var(--card) 80%);color:var(--text);font-family:Inter,"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;line-height:1.5}
+.app{display:flex;min-height:100vh}
+aside{width:230px;background:var(--card);border-right:1px solid var(--line);padding:22px 16px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px}
+.logo{font-weight:800;font-size:1.3rem;color:var(--primary);margin-bottom:14px}
+aside button{all:unset;cursor:pointer;padding:10px 12px;border-radius:10px;color:var(--muted);font-weight:600;font-size:.95rem}
+aside button:hover,aside button.active{background:var(--soft);color:var(--primary)}
+.badge{margin-top:auto;font-size:.75rem;background:var(--warn);padding:6px 10px;border-radius:99px;text-align:center;font-weight:700}
+main{flex:1;padding:28px;max-width:1100px;margin:0 auto;min-width:0}
+h1{margin:0 0 4px;font-size:1.8rem}h2{margin:0 0 12px;font-size:1.1rem}
+.sub{color:var(--muted);margin:0 0 22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--shadow);margin-bottom:20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+textarea{width:100%;min-height:190px;resize:vertical;border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;background:var(--bg);color:var(--text)}
+textarea:focus,input:focus{outline:2px solid var(--primary);border-color:transparent}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.sp{flex:1}.cnt{color:var(--muted);font-size:.85rem}
+.btn{border:0;border-radius:10px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer;background:var(--soft);color:var(--primary)}
+.btn:hover{filter:brightness(.96)}
+.btn.p{background:var(--primary);color:#fff}.btn.p:hover{background:var(--primary-d);filter:none}
+.btn.big{padding:13px 26px;font-size:1rem}
+.err{color:var(--bad);font-size:.85rem;min-height:1.2em;margin-top:6px}
+.tag{display:inline-block;padding:4px 12px;border-radius:99px;font-weight:600;font-size:.85rem;margin:3px}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}.tag.bad{background:var(--bad-bg);color:var(--bad)}
+.empty{color:var(--muted);background:var(--bg);border:1px dashed var(--line);border-radius:12px;padding:18px;text-align:center}
+.score{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.ring{position:relative;width:150px;height:150px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .num{position:absolute;inset:0;display:grid;place-items:center;font-size:2rem;font-weight:800}
+.stats{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0}
+.stat{background:var(--soft);border-radius:12px;padding:8px 14px}.stat b{display:block;font-size:1.3rem}
+.note{font-size:.85rem;color:var(--muted);background:var(--bg);border-left:4px solid var(--primary);padding:8px 12px;border-radius:6px;margin-top:10px}
+.resbox{white-space:pre-wrap;background:var(--bg);border-radius:12px;padding:12px;border:1px solid var(--line)}
+mark{background:var(--warn);color:inherit;border-radius:4px;padding:0 3px;font-weight:700}
+table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+.ba{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.ba>div{border-radius:12px;padding:12px;border:1px solid var(--line)}
+.ba .b{background:var(--bad-bg)}.ba .a{background:var(--ok-bg)}
+.ba h3{margin:0 0 6px;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em}
+input[type=text]{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font:inherit}
+ul{margin:6px 0;padding-left:20px}li{margin:4px 0}
+.hide{display:none}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;padding:10px 18px;border-radius:99px;font-weight:600;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1}
+@media(max-width:800px){.app{flex-direction:column}aside{width:100%;height:auto;position:sticky;top:0;z-index:5;flex-direction:row;flex-wrap:wrap;align-items:center;padding:10px 12px;gap:2px;overflow-x:auto}.logo{margin:0 8px 0 0}.badge{margin:0 0 0 auto}main{padding:16px}.grid2,.ba{grid-template-columns:1fr}h1{font-size:1.4rem}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <div class="logo">📄 ResumeMate</div>
+  <button class="active" data-go="top">Dashboard</button>
+  <button data-go="workspace">Analyzer</button>
+  <button data-go="results">Results</button>
+  <button data-go="improver">Bullet Improver</button>
+  <button data-go="privacy">Privacy</button>
+  <div class="badge">DEMO • Hackathon MVP</div>
+</aside>
+<main id="top">
+  <h1>ResumeMate Dashboard</h1>
+  <p class="sub">A resume self-audit tool for students: paste your resume and a job description to see which skills match, which are missing, and how to make your project bullets stronger.</p>
+
+  <section id="workspace" class="grid2">
+    <div class="card">
+      <h2>Paste Your Resume</h2>
+      <textarea id="resume" placeholder="Paste your resume text here…"></textarea>
+      <div class="row"><span class="cnt" id="rc">0 characters</span><span class="sp"></span>
+        <button class="btn" id="rSample">Sample Resume</button><button class="btn" id="rClear">Clear</button></div>
+      <div class="err" id="rErr"></div>
+    </div>
+    <div class="card">
+      <h2>Paste Job Description</h2>
+      <textarea id="jd" placeholder="Paste the internship / job description here…"></textarea>
+      <div class="row"><span class="cnt" id="jc">0 characters</span><span class="sp"></span>
+        <button class="btn" id="jSample">Sample Job Description</button><button class="btn" id="jClear">Clear</button></div>
+      <div class="err" id="jErr"></div>
+    </div>
+  </section>
+  <div class="row" style="margin:-4px 0 22px">
+    <button class="btn p big" id="analyze">Analyze Resume</button>
+    <button class="btn big" id="reset">Reset All</button>
+  </div>
+
+  <section id="results">
+    <div id="emptyState" class="empty card">📊 No analysis yet. Paste a resume and job description (or use the sample buttons), then click <b>Analyze Resume</b>.</div>
+    <div id="out" class="hide">
+      <div class="card">
+        <h2>1. Keyword Match Score</h2>
+        <div class="score">
+          <div class="ring"><svg width="150" height="150" viewBox="0 0 150 150"><circle cx="75" cy="75" r="64" fill="none" stroke="var(--soft)" stroke-width="14"/><circle id="arc" cx="75" cy="75" r="64" fill="none" stroke="var(--primary)" stroke-width="14" stroke-linecap="round" stroke-dasharray="402.1" stroke-dashoffset="402.1" style="transition:stroke-dashoffset 1.2s ease"/></svg><div class="num" id="pct">0%</div></div>
+          <div style="flex:1;min-width:220px">
+            <div class="stats"><div class="stat"><b id="mc">0</b>Matched</div><div class="stat"><b id="tc">0</b>Total job skills</div><div class="stat"><b id="xc">0</b>Missing</div></div>
+            <div id="expl"></div>
+          </div>
+        </div>
+        <div class="note">⚠️ This is a <b>rule-based keyword match score</b> using a small skill list. It is <b>not</b> a real company's ATS score and does not predict hiring chances.</div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h2>2. Matched Skills ✅</h2><div id="matched"></div></div>
+        <div class="card"><h2>3. Missing Skills ❌</h2><div id="missing"></div>
+          <div class="note">Only add skills you <b>genuinely</b> have. Never list a skill just to boost the score — you may be asked about it in interviews.</div></div>
+      </div>
+      <div class="card"><h2>4. Weak Action Verbs</h2><div id="weak"></div></div>
+      <div class="card"><h2>5. Improvement Suggestions</h2><ul id="tips"></ul>
+        <div class="row"><button class="btn p" id="dl">⬇ Download Report (.txt)</button></div></div>
+    </div>
+  </section>
+
+  <section id="improver" class="card">
+    <h2>Project Bullet Improver</h2>
+    <p class="sub" style="margin-bottom:10px">Paste one project bullet. ResumeMate swaps weak openers for stronger verbs without inventing results or technologies.</p>
+    <input type="text" id="bIn" placeholder="e.g. Made a website using HTML and CSS.">
+    <div class="row"><button class="btn p" id="bGo">Improve Bullet</button><button class="btn" id="bEx">Try Example</button></div>
+    <div class="err" id="bErr"></div>
+    <div id="bOut" class="hide">
+      <div class="ba"><div class="b"><h3>Before</h3><div id="bBefore"></div></div>
+        <div class="a"><h3>After (editable)</h3><input type="text" id="bAfter"></div></div>
+      <div class="row"><button class="btn p" id="bCopy">Copy Suggestion</button></div>
+      <div id="bTips" class="note"></div>
+    </div>
+  </section>
+
+  <section id="privacy" class="card">
+    <h2>🔒 Privacy Notice</h2>
+    <p style="margin:0">Everything runs locally in your browser with JavaScript. Your resume text is never uploaded, stored or sent anywhere, and no external APIs are used. Refreshing the page clears all content.</p>
+  </section>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- Skill dictionary (name -> regex aliases) ----------
+var SKILLS = {
+ "Java":["java"],"Python":["python"],"C":["C"],"C++":["c++","cpp"],
+ "JavaScript":["javascript","js"],"HTML":["html","html5"],"CSS":["css","css3"],
+ "React":["react","reactjs","react.js"],"SQL":["sql"],"MySQL":["mysql"],
+ "MongoDB":["mongodb","mongo db"],"Git":["git"],"GitHub":["github"],
+ "Data Structures":["data structures","data structure","dsa"],"Algorithms":["algorithms","algorithm"],
+ "OOP":["oop","oops","object oriented programming","object oriented","object-oriented"],
+ "Problem Solving":["problem solving","problem-solving"],
+ "Communication":["communication","communication skills"],
+ "REST API":["rest api","rest apis","restful api","restful apis","rest"],
+ "Node.js":["node.js","nodejs","node js"],"Express":["express","express.js","expressjs"],
+ "AWS":["aws","amazon web services"],"Machine Learning":["machine learning"],
+ "Excel":["excel","ms excel"],"Power BI":["power bi","powerbi"]
+};
+var WEAK = [
+ {re:/\bresponsible for\b/gi,key:"responsible for",alts:["Managed"],rep:"Managed"},
+ {re:/\bparticipated in\b/gi,key:"participated in",alts:["Contributed to"],rep:"Contributed to"},
+ {re:/\bworked on\b/gi,key:"worked on",alts:["Developed","Contributed to"],rep:"Contributed to"},
+ {re:/\bhelped\b/gi,key:"helped",alts:["Assisted"],rep:"Assisted with"},
+ {re:/\bmade\b/gi,key:"made",alts:["Developed","Designed"],rep:"Developed"},
+ {re:/\bdid\b/gi,key:"did",alts:["Implemented"],rep:"Implemented"}
+];
+var SAMPLE_R="Computer Science student with knowledge of Java, HTML, CSS and Git. Developed a student portfolio website using HTML and CSS. Interested in software development and problem solving.";
+var SAMPLE_J="We are looking for a Software Developer Intern with knowledge of Java, HTML, CSS, JavaScript, React, SQL, Git and Data Structures. Candidates should have problem-solving skills and knowledge of OOP.";
+var last=null;
+function $(id){return document.getElementById(id)}
+function esc(s){return s.replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function rx(s){return s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/ /g,"[\\s-]+")}
+function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},1800)}
+
+// Find skills in text (case-insensitive, word boundaries, no duplicates)
+function detect(text){
+  var found=[];
+  Object.keys(SKILLS).forEach(function(name){
+    var hit=SKILLS[name].some(function(a){
+      var flags=(name==="C")?"":"i"; // "C" must be a capital letter
+      var re=new RegExp("(^|[^A-Za-z0-9+#])"+rx(a)+"(?![A-Za-z0-9+#])",flags);
+      return re.test(text);
+    });
+    if(hit)found.push(name);
+  });
+  return found;
+}
+function findWeak(text){
+  var res=[];
+  WEAK.forEach(function(w){
+    var m=text.match(w.re);
+    if(m)res.push({phrase:w.key,count:m.length,alts:w.alts});
+  });
+  return res;
+}
+function highlight(text){
+  var out=esc(text);
+  WEAK.forEach(function(w){
+    var re=new RegExp(w.re.source,"gi");
+    out=out.replace(re,function(m){return "<mark>"+m+"</mark>"});
+  });
+  return out;
+}
+function tags(list,cls){return list.length?list.map(function(s){return '<span class="tag '+cls+'">'+esc(s)+'</span>'}).join(""):""}
+
+// ---------- Counters & buttons ----------
+function count(){$("rc").textContent=$("resume").value.length+" characters";$("jc").textContent=$("jd").value.length+" characters"}
+$("resume").oninput=function(){$("rErr").textContent="";count()};
+$("jd").oninput=function(){$("jErr").textContent="";count()};
+$("rSample").onclick=function(){$("resume").value=SAMPLE_R;$("rErr").textContent="";count()};
+$("jSample").onclick=function(){$("jd").value=SAMPLE_J;$("jErr").textContent="";count()};
+$("rClear").onclick=function(){$("resume").value="";count()};
+$("jClear").onclick=function(){$("jd").value="";count()};
+
+// ---------- Analyze ----------
+var timer;
+function animate(target){
+  var arc=$("arc"),n=$("pct"),C=402.1;
+  arc.style.strokeDashoffset=C;
+  requestAnimationFrame(function(){requestAnimationFrame(function(){arc.style.strokeDashoffset=C*(1-target/100)})});
+  var start=null;clearInterval(timer);var cur=0;
+  timer=setInterval(function(){cur+=Math.max(1,Math.ceil(target/40));if(cur>=target){cur=target;clearInterval(timer)}n.textContent=cur+"%"},30);
+  if(target===0)n.textContent="0%";
+}
+$("analyze").onclick=function(){
+  var r=$("resume").value.trim(),j=$("jd").value.trim(),bad=false;
+  $("rErr").textContent="";$("jErr").textContent="";
+  if(!r){$("rErr").textContent="Please paste your resume (or click Sample Resume).";bad=true}
+  if(!j){$("jErr").textContent="Please paste a job description (or click Sample Job Description).";bad=true}
+  if(bad)return;
+  var jobSk=detect(j),resSk=detect(r);
+  var matched=jobSk.filter(function(s){return resSk.indexOf(s)>-1});
+  var missing=jobSk.filter(function(s){return resSk.indexOf(s)===-1});
+  var total=jobSk.length,pct=total?Math.round(matched.length/total*100):null;
+  var weak=findWeak(r);
+  last={pct:pct,matched:matched,missing:missing,total:total,weak:weak};
+
+  $("emptyState").classList.add("hide");$("out").classList.remove("hide");
+  $("mc").textContent=matched.length;$("tc").textContent=total;$("xc").textContent=missing.length;
+  if(total){
+    animate(pct);
+    $("expl").innerHTML="Formula: <b>("+matched.length+" matched ÷ "+total+" skills found in the job description) × 100 = "+pct+"%</b>."+
+      (pct>=75?" Strong keyword overlap.":pct>=40?" Decent overlap, with room to improve.":" Low overlap — review the missing skills.");
+  }else{
+    animate(0);$("pct").textContent="N/A";
+    $("expl").innerHTML="No skills from ResumeMate's dictionary were found in this job description, so a score can't be calculated. Try a description that names specific skills like Python, SQL or React.";
+  }
+  $("matched").innerHTML=tags(matched,"ok")||'<div class="empty">No matching skills found yet.</div>';
+  $("missing").innerHTML=missing.length?tags(missing,"bad"):(total?'<div class="empty">🎉 Nothing missing from the detected skills!</div>':'<div class="empty">No job skills detected.</div>');
+
+  if(weak.length){
+    $("weak").innerHTML='<div class="resbox">'+highlight(r)+'</div><table style="margin-top:12px"><tr><th>Weak phrase</th><th>Times</th><th>Try instead</th></tr>'+
+      weak.map(function(w){return "<tr><td><mark>"+esc(w.phrase)+"</mark></td><td>"+w.count+"</td><td>"+w.alts.join(", ")+"</td></tr>"}).join("")+"</table>";
+  }else $("weak").innerHTML='<div class="empty">✅ No weak action phrases detected from the checker list.</div>';
+
+  var tips=[];
+  if(missing.length)tips.push("If you truly have them, mention these skills in your skills section or projects: <b>"+esc(missing.join(", "))+"</b>. If not, consider learning them.");
+  if(weak.length)tips.push("Replace weak phrases ("+esc(weak.map(function(w){return w.phrase}).join(", "))+") with strong verbs like Developed, Implemented, Designed.");
+  if(!/\d/.test(r))tips.push("Your resume has no numbers. Add real facts you know (e.g. number of pages, users, features) — only if accurate.");
+  if(r.length<300)tips.push("Your resume text is quite short. Add project details: what you built, which tools you used and why.");
+  if(!tips.length)tips.push("Looks good! Re-read your bullets to make sure each starts with a strong verb and is accurate.");
+  $("tips").innerHTML=tips.map(function(t){return "<li>"+t+"</li>"}).join("");
+  $("results").scrollIntoView();
+};
+
+// ---------- Reset ----------
+$("reset").onclick=function(){
+  $("resume").value="";$("jd").value="";count();last=null;
+  $("rErr").textContent="";$("jErr").textContent="";
+  $("out").classList.add("hide");$("emptyState").classList.remove("hide");
+  $("bIn").value="";$("bOut").classList.add("hide");$("bErr").textContent="";
+  $("arc").style.strokeDashoffset=402.1;
+  toast("Everything has been reset");
+};
+
+// ---------- Report download ----------
+function download(name,text){
+  var b=new Blob([text],{type:"text/plain"}),a=document.createElement("a");
+  a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);
+}
+$("dl").onclick=function(){
+  if(!last)return;
+  var L=["RESUMEMATE ANALYSIS REPORT","(Rule-based keyword match - NOT a real ATS score)","",
+   "Date: "+new Date().toLocaleString(),"",
+   "Keyword match score: "+(last.pct===null?"N/A (no skills detected in job description)":last.pct+"%"),
+   "Matched: "+last.matched.length+" / "+last.total,"",
+   "Matched skills: "+(last.matched.join(", ")||"None"),
+   "Missing skills: "+(last.missing.join(", ")||"None"),"",
+   "Weak phrases: "+(last.weak.map(function(w){return w.phrase+" -> "+w.alts.join("/")}).join("; ")||"None"),"",
+   "Suggestions:"].concat([].map.call($("tips").children,function(li){return "- "+li.textContent}));
+  L.push("","Reminder: only add skills you genuinely have.");
+  download("resumemate-report.txt",L.join("\n"));
+  toast("Report downloaded");
+};
+
+// ---------- Bullet improver ----------
+function improve(b){
+  var s=b.trim().replace(/^[\-•*\u2022]\s*/,""),notes=[],after=s;
+  var done=false;
+  WEAK.forEach(function(w){
+    if(done)return;
+    var re=new RegExp("^"+w.re.source,"i");
+    if(re.test(s)){
+      after=s.replace(re,w.rep);
+      notes.push('Replaced the weak opener "'+w.key+'" with "'+w.rep+'".');
+      done=true;
+    }
+  });
+  if(!done){
+    var inner=findWeak(s);
+    if(inner.length)notes.push('Found weak phrase "'+inner[0].phrase+'" inside the bullet. Consider rewording it with: '+inner[0].alts.join(", ")+".");
+    else notes.push("No weak opening verb found. Make sure the bullet starts with a strong verb like Developed, Designed or Implemented.");
+  }
+  after=after.charAt(0).toUpperCase()+after.slice(1);
+  if(!/[.!?]$/.test(after))after+=".";
+  notes.push("Next step (only if true): add WHY you built it or a real result, e.g. \"to help users do ___\". ResumeMate never invents these for you.");
+  return {after:after,notes:notes};
+}
+$("bGo").onclick=function(){
+  var v=$("bIn").value.trim();$("bErr").textContent="";
+  if(!v){$("bErr").textContent="Please type or paste a project bullet first.";$("bOut").classList.add("hide");return}
+  var r=improve(v);
+  $("bBefore").textContent=v;$("bAfter").value=r.after;
+  $("bTips").innerHTML="<ul>"+r.notes.map(function(n){return "<li>"+esc(n)+"</li>"}).join("")+"</ul>";
+  $("bOut").classList.remove("hide");
+};
+$("bEx").onclick=function(){$("bIn").value="Made a website using HTML and CSS.";$("bGo").click()};
+$("bCopy").onclick=function(){
+  var f=$("bAfter"),t=f.value;
+  function fb(){f.select();try{document.execCommand("copy");toast("Copied!")}catch(e){toast("Press Ctrl+C to copy")}}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast("Copied!")},fb)}else fb();
+};
+
+// ---------- Navigation ----------
+document.querySelectorAll("aside [data-go]").forEach(function(b){
+  b.onclick=function(){
+    document.querySelectorAll("aside button").forEach(function(x){x.classList.remove("active")});
+    b.classList.add("active");$(b.dataset.go).scrollIntoView();
+  };
+});
+count();
+</script>
+</body>
+</html>
